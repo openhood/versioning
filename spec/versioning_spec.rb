@@ -70,7 +70,7 @@ describe Chicken do
 
     end
 
-    describe "When name changed" do
+    describe "When name is changed to Joan" do
 
       before do
         @chicken.save
@@ -105,7 +105,7 @@ describe Chicken do
       @chicken.save.should == true
     end
 
-    describe "When name changed to Joan and has a new child" do
+    describe "When name is changed to Joan and she has a new child" do
 
       before do
         @chicken.save
