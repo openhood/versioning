@@ -52,6 +52,9 @@ module Versioning
 
           # detect if versioning is required
           versioned_attributes = changed
+          self.class.versioning_options[:associations].each do |association|
+            versioned_attributes << association if send(association + "_changed?")
+          end
           versioned_attributes -= self.class.versioning_options[:except]
           versioned_attributes &= self.class.versioning_options[:only]
           if versioned_attributes.present?

@@ -55,3 +55,4 @@ versioning # save a new version if any column is changed except created_at, chan
 versioning :only => :name # save a new version only if name is changed
 versioning :except => :farmer_id, :group => :main_version_id # save a new version if any column is changed except created_at, changed_at, id, main_version_id and farmer_id
 versioning :only => [:name, :description], :associations => :children # save a new version only if name and description is changed, and take track of which children was attached at this time
+versioning :only => :children, :associations => :children # save a new version only if children have been added or removed and track those changes through versions

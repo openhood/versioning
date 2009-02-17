@@ -4,7 +4,7 @@ class Chicken < ActiveRecord::Base
   has_many :chicken_children
   has_many :children, :through => :chicken_children
   dirty_associations :children
-  versioning :only => [:name, :description], :associations => :children
+  versioning :only => [:name, :description, :children], :associations => :children
 end
 class Child < ActiveRecord::Base
   belongs_to :chicken
@@ -124,6 +124,20 @@ describe Chicken do
 
       it "Gertrude should still have 2 children" do
         @chicken.versions.first.children.size.should == 2
+      end
+
+    end
+
+    describe "When she just loose a child" do
+
+      before do
+        @chicken.save
+        @chicken.children.delete(@chicken.children.first)
+        @chicken.save
+      end
+
+      it "should create a new version" do
+        @chicken.versions.size.should == 1
       end
 
     end
