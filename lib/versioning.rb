@@ -23,6 +23,9 @@ module Versioning
       options[:associations] = [options[:associations]] unless options[:associations].is_a?(Array)
       options[:associations].collect!(&:to_s)
       options[:version_class_name] = self.to_s + "Version"
+      if !options[:associations].blank? && self.inheritable_attributes[:dirty_associations].blank?
+        dirty_associations options[:associations]
+      end
       write_inheritable_attribute :versioning_options, options
       class_inheritable_reader :versioning_options
 
@@ -42,8 +45,6 @@ module Versioning
       # init versioning
       self.class_eval do # instance methods
 
-      public
-
         after_save :save_version_group
 
       private
@@ -52,9 +53,6 @@ module Versioning
 
           # detect if versioning is required
           versioned_attributes = changed
-          self.class.versioning_options[:associations].each do |association|
-            versioned_attributes << association if send(association + "_changed?")
-          end
           versioned_attributes -= self.class.versioning_options[:except]
           versioned_attributes &= self.class.versioning_options[:only]
           if versioned_attributes.present?

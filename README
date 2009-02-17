@@ -14,21 +14,21 @@ To avoid duplication of columns across 2 tables, this plugin uses STI, so you'll
 
 == Install
 
-./script/plugin install git...
+./script/plugin install git@github.com:openhood/versioning.git
 
 or if you use braid:
 
-./script/braid add -p git...
+braid add -p git@github.com:openhood/versioning.git
 
 == Requirements
 
 To use this plugin, you must also install skip_stamp:
 
-http://...
+http://github.com/openhood/skip_stamp
 
 If you plan to version your associations, you will also need dirty_attributes:
 
-http://...
+http://github.com/openhood/dirty_associations
 
 In your model, add 2 columns:
 - type:string column (if not already present)
@@ -45,7 +45,6 @@ def Chicken < ActiveRecord::Base
 
   # versionned association
   has_many :children, :through => "ChickenChild"
-  dirty_associations :children
   versioning :only => [:name, :description], :associations => :children
 end
 

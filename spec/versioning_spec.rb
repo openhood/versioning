@@ -3,7 +3,6 @@ require File.dirname(__FILE__) + '/spec_helper'
 class Chicken < ActiveRecord::Base
   has_many :chicken_children
   has_many :children, :through => :chicken_children
-  dirty_associations :children
   versioning :only => [:name, :description, :children], :associations => :children
 end
 class Child < ActiveRecord::Base
