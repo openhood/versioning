@@ -3,6 +3,7 @@ ActiveRecord::Schema.define(:version => 0) do
     t.string :name
     t.string :description
     t.integer :main_id
+    t.integer :version_count, :null => false, :default => 0
     t.string :type
     t.timestamps
   end

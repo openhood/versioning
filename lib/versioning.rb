@@ -23,6 +23,7 @@ module Versioning
       options[:associations] = [options[:associations]] unless options[:associations].is_a?(Array)
       options[:associations].collect!(&:to_s)
       options[:version_class_name] = self.to_s + "Version"
+      options[:counter_cache] = options[:counter_cache].to_s
       if !options[:associations].blank? && self.inheritable_attributes[:dirty_associations].blank?
         dirty_associations options[:associations]
       end
@@ -34,7 +35,7 @@ module Versioning
 
       # link old versions to current version
       version_class.class_eval <<-eos
-        belongs_to :current_version, :class_name => "#{self.to_s}", :foreign_key => "#{options[:group]}"
+        belongs_to :current_version, :class_name => "#{self.to_s}", :foreign_key => "#{options[:group]}"#{!options[:counter_cache].blank? ? ', :counter_cache => "' + options[:counter_cache] + '"' : ""}
       eos
 
       # link current version to old versions
@@ -62,8 +63,8 @@ module Versioning
 
             # duplicate attributes
             old_attributes = attributes.merge(changed_attributes)
-            old_attributes[:id] = nil
-            old_attributes[:type] = self.class.versioning_options[:version_class_name]
+            old_attributes.delete("id")
+            old_attributes["type"] = self.class.versioning_options[:version_class_name]
             version.send(:attributes=, old_attributes, false)
 
             # duplicate versioned associations
@@ -71,8 +72,8 @@ module Versioning
               version.send(association + "=", send(association + "_was"))
             end
 
-            # save without changing timestamp
-            skip_stamp{version.save}
+            # save without validations and without changing timestamp
+            skip_stamp{version.save(false)}
           end
 
           # go on with classic update

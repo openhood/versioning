@@ -2,6 +2,8 @@ h2. Versioning
 
 Plugin to version your ActiveRecord models and associations, thread-safe and fully working with specs.
 
+h3. Version numbers
+
 On production server, any website uses either multiple threads, processes, database connections or a combination of these. It means special caution must be made when generating next version number. Possible solutions to this common pitfall:
 
 # add a full table write lock for most operations
@@ -9,8 +11,6 @@ On production server, any website uses either multiple threads, processes, datab
 # use primary key and forget about version number
 
 This plugin uses the third solution, version numbers are overrated and to my opinion more like a view stuff. In most case, the "updated_at" column (provided you have one) can replace the version number.
-
-To avoid duplication of columns across 2 tables, this plugin uses STI, so you'll need a "type" column on your table. It works even if your primary model is already using STI (in which case the "type" column is already there, ready to be used by this plugin).
 
 h3. Install
 
@@ -22,11 +22,13 @@ or if you use braid:
 
 h3. Requirements
 
-To use this plugin, you must also install the "skip_stamp":http://github.com/openhood/skip_stamp plugin. If you plan to version your associations, you will also need "dirty_attributes":http://github.com/openhood/dirty_associations.
+To avoid duplication of columns, this plugin uses STI, so you'll need a "type" column on your table. It works even if your primary model is already using STI, in which case the "type" column is already there.
 
-In your model, add these columns:
+So in your parent model's table, add these columns:
 # type:string (if not already present)
 # main_id:integer (name of this column, used to group versions related to the same parent, can be changed through options as seen below)
+
+For this plugin to work, you must also install the "skip_stamp":http://github.com/openhood/skip_stamp plugin. Moreover, if you plan to version your associations, you will also need "dirty_attributes":http://github.com/openhood/dirty_associations.
 
 h3. Example
 
@@ -49,3 +51,19 @@ Other possibilities for declaring versions:
   versioning :except => :farmer_id, :group => :main_version_id # save a new version if any column is changed except created_at, changed_at, id, main_version_id and farmer_id
   versioning :only => [:name, :description], :associations => :children # save a new version only if name and description is changed, and take track of which children was attached at this time
   versioning :only => :children, :associations => :children # save a new version only if children have been added or removed and track those changes through versions
+
+h3. Validates uniqueness of...
+
+As generated model used for versions is a STI child of the versioned model, if you want to validate unicity of some column on the parent model you'll have to do something like that:
+
+  validates_uniqueness_of :name, :scope => :type, :unless => Proc.new { |chicken| chicken.type.to_s.ends_with?("Version") }
+
+Remember that Rails documentation states that validates_uniqueness_of does not guarantee the absence of duplicate record insertions in the database.
+
+h3. Version numbers (again)
+
+If you really want version numbers, you can use Rails counter cache to simulate them, thus if you have a version_count column you can do:
+
+  versioning :cache_counter => :version_count
+
+When multiple instances of your application are running concurrently, it can be inaccurate, that's why it's disabled by default.

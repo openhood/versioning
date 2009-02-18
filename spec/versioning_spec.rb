@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/spec_helper'
 class Chicken < ActiveRecord::Base
   has_many :chicken_children
   has_many :children, :through => :chicken_children
-  versioning :only => [:name, :description, :children], :associations => :children
+  versioning :only => [:name, :description, :children], :associations => :children, :counter_cache => :version_count
 end
 class Child < ActiveRecord::Base
   belongs_to :chicken
@@ -49,6 +49,10 @@ describe Chicken do
         @chicken.versions.should == []
       end
 
+      it "counter cache should be zero" do
+        @chicken.version_count.should == 0
+      end
+
       it "should fill-in the group column with primary key value" do
         @chicken.main_id.should == @chicken.id
       end
@@ -78,6 +82,11 @@ describe Chicken do
 
       it "should create a new version" do
         @chicken.versions.size.should == 1
+      end
+
+      it "counter cache should be 1 after reload" do
+        @chicken.reload
+        @chicken.version_count.should == 1
       end
 
       it "should create a new version with name Gertrude" do
