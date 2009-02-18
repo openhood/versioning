@@ -1,0 +1,51 @@
+h2. Versioning
+
+Plugin to version your ActiveRecord models and associations, thread-safe and fully working with specs.
+
+On production server, any website uses either multiple threads, processes, database connections or a combination of these. It means special caution must be made when generating next version number. Possible solutions to this common pitfall:
+
+# add a full table write lock for most operations
+# use database native sequences to generate version number
+# use primary key and forget about version number
+
+This plugin uses the third solution, version numbers are overrated and to my opinion more like a view stuff. In most case, the "updated_at" column (provided you have one) can replace the version number.
+
+To avoid duplication of columns across 2 tables, this plugin uses STI, so you'll need a "type" column on your table. It works even if your primary model is already using STI (in which case the "type" column is already there, ready to be used by this plugin).
+
+h3. Install
+
+  ./script/plugin install git@github.com:openhood/versioning.git
+
+or if you use braid:
+
+  braid add -p git@github.com:openhood/versioning.git
+
+h3. Requirements
+
+To use this plugin, you must also install the "skip_stamp":http://github.com/openhood/skip_stamp plugin. If you plan to version your associations, you will also need "dirty_attributes":http://github.com/openhood/dirty_associations.
+
+In your model, add these columns:
+# type:string (if not already present)
+# main_id:integer (name of this column, used to group versions related to the same parent, can be changed through options as seen below)
+
+h3. Example
+
+  def Chicken < ActiveRecord::Base
+
+    # unversionned association
+    belongs_to :farmer
+    has_one :special_song, :primary_key => "main_id"
+    has_many :eggs, :primary_key => "main_id"
+
+    # versionned association
+    has_many :children, :through => "ChickenChild"
+    versioning :only => [:name, :description], :associations => :children
+  end
+
+Other possibilities for declaring versions:
+
+  versioning # save a new version if any column is changed except created_at, changed_at, id and main_id
+  versioning :only => :name # save a new version only if name is changed
+  versioning :except => :farmer_id, :group => :main_version_id # save a new version if any column is changed except created_at, changed_at, id, main_version_id and farmer_id
+  versioning :only => [:name, :description], :associations => :children # save a new version only if name and description is changed, and take track of which children was attached at this time
+  versioning :only => :children, :associations => :children # save a new version only if children have been added or removed and track those changes through versions
