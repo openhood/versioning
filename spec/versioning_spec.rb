@@ -118,11 +118,11 @@ describe Chicken do
       end
 
       it "Joan should now have 3 children" do
-        @chicken.children.size.should == 3
+        @chicken.children.count.should == 3
       end
 
       it "Gertrude should still have 2 children" do
-        @chicken.versions.first.children.size.should == 2
+        @chicken.versions.first.children.count.should == 2
       end
 
     end
