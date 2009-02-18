@@ -33,12 +33,10 @@ For this plugin to work, you must also install the "skip_stamp":http://github.co
 h3. Example
 
   def Chicken < ActiveRecord::Base
-
     # unversionned association
     belongs_to :farmer
     has_one :special_song, :primary_key => "main_id"
     has_many :eggs, :primary_key => "main_id"
-
     # versionned association
     has_many :children, :through => "ChickenChild"
     versioning :only => [:name, :description], :associations => :children
