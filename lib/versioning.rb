@@ -33,20 +33,31 @@ module Versioning
       # get STI model for storing versions or define it on the fly
       version_class = Object.const_defined?(options[:version_class_name]) ? options[:version_class_name].constantize : Object.const_set(options[:version_class_name], Class.new(self))
 
+      # link current version to old versions
+      self.class_eval <<-eos
+        has_many :versions, :class_name => "#{options[:version_class_name]}", :primary_key => "#{options[:group]}", :foreign_key => "#{options[:group]}"
+        def is_version?
+          self.type.to_s.ends_with?("Version")
+        end
+      eos
+
       # link old versions to current version
       version_class.class_eval <<-eos
         belongs_to :current_version, :class_name => "#{self.to_s}", :foreign_key => "#{options[:group]}"#{!options[:counter_cache].blank? ? ', :counter_cache => "' + options[:counter_cache] + '"' : ""}
       eos
 
-      # link current version to old versions
-      self.class_eval <<-eos
-        has_many :versions, :class_name => "#{options[:version_class_name]}", :primary_key => "#{options[:group]}", :foreign_key => "#{options[:group]}"
-      eos
-
       # init versioning
       self.class_eval do # instance methods
 
-        after_save :save_version_group
+      public
+
+        after_save :save_version_group, :on => :create
+
+        def skip_versioning(&block)
+          @skip_versioning = true
+          yield
+          @skip_versioning = nil
+        end
 
       private
 
@@ -56,7 +67,7 @@ module Versioning
           versioned_attributes = changed
           versioned_attributes -= self.class.versioning_options[:except]
           versioned_attributes &= self.class.versioning_options[:only]
-          if versioned_attributes.present?
+          if versioned_attributes.present? && @skip_versioning.blank?
 
             # create a new version
             version = self.class.versioning_options[:version_class_name].constantize.new
@@ -83,7 +94,7 @@ module Versioning
 
         def save_version_group
           group = self.class.versioning_options[:group]
-          update_attribute(group, id) if self[group].blank?
+          skip_versioning{update_attribute(group, id)} if self[group].blank?
         end
 
       end

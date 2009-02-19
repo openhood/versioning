@@ -1,6 +1,6 @@
 h2. Versioning
 
-Plugin to version your ActiveRecord models and associations, thread-safe and fully working with specs.
+Plugin to version your ActiveRecord models and associations, thread-safe and fully working with specs, tested on both Rails 2.2 and 2.3
 
 h3. Version numbers
 
@@ -54,7 +54,7 @@ h3. Validates uniqueness of...
 
 As generated model used for versions is a STI child of the versioned model, if you want to validate unicity of some column on the parent model you'll have to do something like that:
 
-  validates_uniqueness_of :name, :scope => :type, :unless => Proc.new { |chicken| chicken.type.to_s.ends_with?("Version") }
+  validates_uniqueness_of :name, :scope => :type, :unless => :is_version?
 
 Remember that Rails documentation states that validates_uniqueness_of does not guarantee the absence of duplicate record insertions in the database.
 

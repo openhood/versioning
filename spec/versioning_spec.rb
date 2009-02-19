@@ -47,6 +47,7 @@ describe Chicken do
 
       it "should not create a new version" do
         @chicken.versions.should == []
+        ChickenVersion.count.should == 0
       end
 
       it "counter cache should be zero" do
