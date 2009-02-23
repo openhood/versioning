@@ -9,6 +9,9 @@ module Versioning
     # initial setup of dirty associations
     def versioning(options)
       
+      # make sure we don't inherit versioning
+      return if self.type.to_s.ends_with?("Version")
+      
       # read options and store them as inheritable attributes
       options ||= {}
       options[:group] = options[:group].blank? ? "main_id" : options[:group].to_s
